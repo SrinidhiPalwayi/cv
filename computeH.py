@@ -29,9 +29,13 @@ print(pos_right)
 """""
 import json
 
+orig_img_size = 2160
+new_img_size = 2.0
+scaler = lambda t: t * (new_img_size / float(orig_img_size))
+
 def computeH():
     left_list = getScaledPoints("left.txt")
-    right_list =  getScaledPoints("left.txt")
+    right_list =  getScaledPoints("right.txt")
 
     n = len(left_list)
 
@@ -69,9 +73,6 @@ def computeH():
     return H
 
 def getScaledPoints(textfile):
-    orig_img_size = 2160
-    new_img_size = 2.0
-    scaler = lambda t: t * (new_img_size / float(orig_img_size))
     f = open(textfile)
     left_list = np.asarray([json.loads(line.strip()) for line in f])
     left_list = np.asarray([[scaler(i) for i in coord] for coord in left_list])
@@ -82,14 +83,14 @@ def getScaledPoints(textfile):
 def warpImage(inputIm, refIm, H):
     #inputIm is left image
     #refIm is the right image
-    left_list = np.transpose(getScaledPoints("left.txt"))
+    input = np.asarray(plt.imread(inputIm))
+    width, height, channels = input.shape
 
-    H = computeH()
-    n = len(left_list[0])
-    one_array = np.ones((1,n))
-    left_side = np.concatenate((left_list, one_array), axis=0)
-    transformed = np.dot(H, left_side)
+    A =[[scaler(w), scaler(h), 1] for h in range(height) for w in range(width)]
+    transformed = np.dot(H, np.transpose(A))
+    print(len(transformed), len(transformed[0]))
     print(transformed)
+
 
 
 
@@ -106,4 +107,4 @@ def warpImage(inputIm, refIm, H):
 #print(H)
 
 #print(right_list)
-print(warpImage("s,", "p", "d"))
+print(warpImage("left.png", "right.png", computeH()))
