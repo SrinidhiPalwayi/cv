@@ -30,19 +30,8 @@ print(pos_right)
 import json
 
 def computeH():
-    orig_img_size = 2160
-    new_img_size = 2.0
-    scaler = lambda t: t*(new_img_size/float(orig_img_size))
-    f = open("left.txt")
-    left_list = np.asarray([json.loads(line.strip()) for line in f])
-    left_list = np.asarray([[scaler(i) for i in coord] for coord in left_list])
-    print(left_list)
-    f.close()
-
-    f = open("left.txt")
-    right_list = np.asarray([json.loads(line.strip()) for line in f])
-    right_list = np.asarray([[scaler(i) for i in coord] for coord in right_list])
-    f.close()
+    left_list = getScaledPoints("left.txt")
+    right_list =  getScaledPoints("left.txt")
 
     n = len(left_list)
 
@@ -54,7 +43,7 @@ def computeH():
     right_y = np.asarray([item[1] for item in right_list])
     transpose_right_y = np.reshape(right_y, (n,1))
 
-    one_array = np.ones((n,1), dtype=int)
+    one_array = np.ones((n,1))
     zero_array = np.zeros((n,3), dtype=int)
 
     x_multiply = np.multiply(-left_x, right_x)
@@ -79,6 +68,34 @@ def computeH():
 
     return H
 
+def getScaledPoints(textfile):
+    orig_img_size = 2160
+    new_img_size = 2.0
+    scaler = lambda t: t * (new_img_size / float(orig_img_size))
+    f = open(textfile)
+    left_list = np.asarray([json.loads(line.strip()) for line in f])
+    left_list = np.asarray([[scaler(i) for i in coord] for coord in left_list])
+    f.close()
+    return left_list
+
+
+def warpImage(inputIm, refIm, H):
+    #inputIm is left image
+    #refIm is the right image
+    left_list = np.transpose(getScaledPoints("left.txt"))
+
+    H = computeH()
+    n = len(left_list[0])
+    one_array = np.ones((1,n))
+    left_side = np.concatenate((left_list, one_array), axis=0)
+    transformed = np.dot(H, left_side)
+    print(transformed)
+
+
+
+
+
+
 #one_list= np.ones((1,n), dtype=int)
 #left_side = np.concatenate((np.transpose(left_list), one_list), axis=0)
 
@@ -89,4 +106,4 @@ def computeH():
 #print(H)
 
 #print(right_list)
-print(computeH())
+print(warpImage("s,", "p", "d"))
