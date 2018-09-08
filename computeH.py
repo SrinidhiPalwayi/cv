@@ -1,6 +1,7 @@
 import matplotlib.pylab as plt
 import numpy as np
 import sys
+import cv2
 
 """"
 run script twice
@@ -40,6 +41,8 @@ def computeH():
         #getScaledPoints("left.txt")
     right_list =  np.load('cc2.npy')
 
+    print(cv2.findHomography(left_list, right_list))
+
     #why is the identity matrix diagonal half
         #getScaledPoints("right.txt")
 
@@ -54,7 +57,7 @@ def computeH():
     transpose_right_y = np.reshape(right_y, (n,1))
 
     one_array = np.ones((n,1))
-    zero_array = np.zeros((n,3), dtype=int)
+    zero_array = np.zeros((n,3))
 
     x_multiply = np.multiply(-left_x, right_x)
     x_multiply = np.reshape(x_multiply, (n,1))
@@ -89,9 +92,9 @@ def warpImage(inputIm, refIm, H):
     #inputIm is left image
     #refIm is the right image
     input = np.asarray(plt.imread(inputIm))
-    print(input)
+    print(input.shape)
     height, width, channels = input.shape
-    print(height, width, channels)
+    #print(height, width, channels)
 
     top_left = np.asarray([0,0,1]).reshape(3,1)
     top_right = np.asarray([width, 0, 1]).reshape(3,1)
@@ -119,24 +122,56 @@ def warpImage(inputIm, refIm, H):
         scale_warped.append(row)
     scale_warped = np.asarray(scale_warped)
     scale_warped = np.transpose(scale_warped)
-    print(scale_warped)
-    A = np.asarray([[w, h, 1] for h in range(int(np.floor(y_min)), int(np.ceil(y_max)))
-                    for w in range(int(np.floor(x_min)),int(np.ceil(x_max)))])
+    #print(scale_warped)
+
+    y_length = int(np.ceil(y_max)) - int(np.floor(y_min))
+    x_length = int(np.ceil(x_max)) - int(np.floor(x_min))
+    A = np.asarray([[w, h, 1] for h in range(int(np.floor(y_min)),  int(np.ceil(y_max)))
+                    for w in range(int(np.floor(x_min)),  int(np.ceil(x_max)))])
+    y_min_ind = int(np.floor(y_min))
+    x_min_ind = int(np.floor(x_min))
+    H_inv = np.linalg.inv(H)
+    size = (y_length, x_length, 3)
+    print(y_length, x_length)
+    final_image = np.zeros(size)
+    for h in range(int(np.floor(y_min)),  int(np.ceil(y_max))):
+        for w in range(int(np.floor(x_min)),  int(np.ceil(x_max))):
+            col = np.reshape([w, h, 1], (3,1))
+            on_input = np.dot(H_inv, col)
+            on_input = np.true_divide(on_input, on_input[2])
+
+            y_new = int(round(on_input[1][0]))
+            x_new = int(round(on_input[0][0]))
+
+            if(y_new >= 0 and y_new < height):
+                #is it in the range of y
+                if (x_new >= 0 and x_new < width):
+                    #is it in the range of x
+                    final_image[h-y_min_ind][w-x_min_ind] = input[y_new][x_new]
+                else:
+                    final_image[h - y_min_ind][w - x_min_ind] = np.asarray([0,0,0])
+            else:
+                final_image[h - y_min_ind][w - x_min_ind] = np.asarray([0, 0, 0])
+    plt.imshow(final_image)
+    plt.show()
+
+""""
+
     A = np.transpose(A)
     H_inv = np.linalg.inv(H)
-
-    inverse_warp = np.dot(H_inv, A)
+    final_image = np.zeros(y_length, x_length)
     scale_inverse_warp = list()
     for col in inverse_warp:
         row = np.true_divide(col, col[2])
+        final_image
         scale_inverse_warp.append(row)
     scale_inverse_warp = np.asarray(scale_inverse_warp)
-    scale_inverse_warp = np.transpose
+    scale_inverse_warp = np.transpose(scale_inverse_warp)
 
 
 
 
-""""
+
     transformed = np.dot(H, np.transpose(A))
 
 
