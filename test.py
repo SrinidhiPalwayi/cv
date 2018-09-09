@@ -2,6 +2,38 @@ import matplotlib.pylab as plt
 import numpy as np
 import sys
 from scipy import misc
+#import cv2
+
+""""
+run script twice
+change the list to the other image and another text file
+"""
+"""""
+
+right_file = "crop1.png"
+left_file = "crop2.png"
+r_img = plt.imread(right_file)
+l_img = plt.imread(left_file)
+f,a = plt.subplots(1,2, figsize=(15,10))
+a[0].imshow(l_img)
+a[1].imshow(r_img)
+pos_right = []
+pos_left = []
+def onclick(event):
+    pos_right.append([event.xdata,event.ydata])
+f.canvas.mpl_connect('button_press_event', onclick)
+f.show()
+plt.show()
+with open('right.txt', 'w') as f:
+    for item in pos_right:
+        f.write("%s\n" % [int(item[0]), int(item[1])])
+print(pos_right)
+
+"""""
+import json
+
+new_img_size = 2.0
+scaler = lambda t,orig_img_size : t * (new_img_size / float(orig_img_size))
 
 
 
@@ -35,12 +67,19 @@ def computeH():
         final = np.vstack((final,section))
 
     final = final[1:]
+
     u, s, vh = np.linalg.svd(final)
     H = vh[-1]
     H = np.true_divide(H, H[-1])
     H = np.reshape(H, (3,3))
     return H
 
+def getScaledPoints(textfile):
+    f = open(textfile)
+    left_list = np.asarray([json.loads(line.strip()) for line in f])
+    left_list = np.asarray([[scaler(i) for i in coord] for coord in left_list])
+    f.close()
+    return left_list
 
 
 def warpImage(inputIm, refIm, H):
