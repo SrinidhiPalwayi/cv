@@ -29,6 +29,25 @@ with open('right.txt', 'w') as f:
         f.write("%s\n" % [int(item[0]), int(item[1])])
 print(pos_right)
 
+
+right_file = "crop1.png"
+    left_file = "crop2.png"
+    r_img = plt.imread(right_file)
+    l_img = plt.imread(left_file)
+    f, a = plt.subplots(1, 2, figsize=(15, 10))
+    a[0].imshow(l_img)
+    a[1].imshow(r_img)
+
+    def onclick(event):
+        print('button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+              (event.button, event.x, event.y, event.xdata, event.ydata))
+        plt.plot(event.x, event.y, ',')
+        f.canvas.draw()
+
+    img = f.canvas.mpl_connect('button_press_event', onclick)
+    #f.show()
+    plt.show()
+
 """""
 import json
 
@@ -37,13 +56,19 @@ scaler = lambda t,orig_img_size : t * (new_img_size / float(orig_img_size))
 
 
 
-def computeH():
-    left_list = np.load('cc1.npy')
-    right_list = np.load('cc2.npy')
+def computeH(t1, t2):
+    left_list = np.load(t1)
+    if(len(left_list) == 2 ):
+        left_list = np.transpose(left_list)
+    right_list = np.load(t2)
+    if (len(right_list) == 2):
+        right_list = np.transpose(right_list)
     n = len(left_list)
 
     left_list_one = np.insert(left_list, 2, 1, axis=1) #one concatenated to the end of each list
     zero_array = np.zeros(3)
+
+    print(left_list)
 
     left_x = np.asarray([item[0] for item in left_list])
     left_y = np.asarray([item[1] for item in left_list])
@@ -115,12 +140,10 @@ def warpImage(inputIm, refIm, H):
         scale_warped.append(row)
     scale_warped = np.asarray(scale_warped)
     scale_warped = np.transpose(scale_warped)
-    #print(scale_warped)
 
     y_length = int(np.ceil(y_max)) - int(np.floor(y_min))
     x_length = int(np.ceil(x_max)) - int(np.floor(x_min))
-    A = np.asarray([[w, h, 1] for h in range(int(np.floor(y_min)),  int(np.ceil(y_max)))
-                    for w in range(int(np.floor(x_min)),  int(np.ceil(x_max)))])
+
     y_min_ind = int(np.floor(y_min))
     x_min_ind = int(np.floor(x_min))
     H_inv = np.linalg.inv(H)
@@ -143,20 +166,15 @@ def warpImage(inputIm, refIm, H):
             if(h >= 0 and h < ref.shape[0] and w >=0 and w < ref.shape[1]):
                 mosaic_image[h-y_min_ind][w-x_min_ind] = ref[h][w]
 
-    warped_image = np.array(final_image, dtype='uint8')
-    mosaic = np.array(mosaic_image, dtype='uint8')
-    x_len = len(ref[0])
-    zero_ref = np.zeros((-y_min_ind, x_len,3))
-    print(ref.shape)
-    print(zero_ref.shape)
+    warpedIm = np.array(final_image, dtype='uint8')
+    mergedIm = np.array(mosaic_image, dtype='uint8')
 
-    new = np.concatenate((zero_ref,ref), axis=0)
-    show = np.array(new, dtype='uint8')
 
-    zero_side = np.zeros((len(ref), -x_min_ind, 3))
-
-    plt.imshow(mosaic, interpolation='nearest')
+    plt.imshow(mergedIm, interpolation='nearest')
+    #plt.imshow(warpedIm, interpolation='nearest')
     plt.show()
+
+    return (warpedIm, mergedIm)
 
 """"
 
@@ -221,4 +239,4 @@ def warpImage(inputIm, refIm, H):
 
 #print(right_list)
 #print(computeH())
-print(warpImage("crop1.jpg", "crop2.jpg", computeH()))
+print(warpImage("wdc1.jpg", "wdc2.jpg", computeH('points1.npy', 'points2.npy')))
