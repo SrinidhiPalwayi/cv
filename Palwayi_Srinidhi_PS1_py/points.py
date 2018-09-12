@@ -1,8 +1,10 @@
 import matplotlib.pylab as plt
 import numpy as np
 
-left_file = "left.png"
-right_file = "right.png"
+"change the image names, and .npy files every time you run the program"
+
+left_file = "left.jpg"
+right_file = "right.jpg"
 
 r_img = plt.imread(right_file)
 l_img = plt.imread(left_file)
@@ -27,16 +29,13 @@ plt.show()
 zero = np.zeros((2,2,4))
 print(pos_left)
 print(pos_right)
-pos_right = np.asarray(pos_right)
-np.save("right.npy", pos_right)
-
-print(pos_right.shape)
 
 pos_left = np.asarray(pos_left)
 np.save("left.npy", pos_left)
 pos_left = np.transpose(pos_left)
 
-
+pos_right = np.asarray(pos_right)
+np.save("right.npy", pos_right)
 
 pos_right = np.transpose(pos_right)
 
